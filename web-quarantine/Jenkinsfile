@@ -48,20 +48,6 @@ pipeline {
         }
      }
 
-    '''stage('docker-package'){
-        agent any
-        steps{
-          echo 'Packaging users app with docker'
-          script{
-            docker.withRegistry('https://index.docker.io/v1/', 'dockerlogin') {
-                def usersImage = docker.build("snehah/users:v${env.BUILD_ID}", "./java/cmad-ms-users")
-                usersImage.push()
-                usersImage.push("latest")
-           }
-          }
-        }
-      }
-    }'''
     post {
       always {
         echo 'Building multibranch pipeline for users is completed..'
