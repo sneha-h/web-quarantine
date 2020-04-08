@@ -1,52 +1,38 @@
 pipeline {
-    agent none
+    agent {
+      docker {
+        image 'maven:3.6.1-jdk-8-slim'
+        args '-v $HOME/.m2:/root/.m2'
+      }
+    }
 
     stages {
         stage('build') {
-            agent {
-              docker {
-                image 'maven:3.6.1-jdk-8-slim'
-                args '-v $HOME/.m2:/root/.m2'
-              }
-            }
-
             steps {
-                echo 'Compiling users app..'
+                echo 'Compiling app..'
                 dir('web-quarantine') {
                     sh 'mvn compile'
                 }
             }
         }
         stage('test') {
-            agent {
-              docker {
-                image 'maven:3.6.1-jdk-8-slim'
-                args '-v $HOME/.m2:/root/.m2'
-              }
-            }
             steps {
-                echo 'Running unit tests on uers app..'
+                echo 'Running unit tests..'
                 dir('web-quarantine') {
                     sh 'mvn clean test'
                 }
             }
         }
        stage('package') {
-            agent {
-              docker {
-                image 'maven:3.6.1-jdk-8-slim'
-                args '-v $HOME/.m2:/root/.m2'
-              }
-            }
             steps {
-                echo 'Packing users app..'
+                echo 'Packing app..'
                 dir('web-quarantine') {
                     sh 'mvn package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint:true
                 }
             }
         }
-     }
+    }
 
     post {
       always {
