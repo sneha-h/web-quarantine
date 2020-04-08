@@ -1,10 +1,15 @@
 pipeline {
-    agent any
-    tools {
-        maven 'Maven 3.6.1' 
-    }
+    agent none
+
     stages {
         stage('build') {
+            agent {
+              docker {
+                image 'maven:3.6.1-jdk-8-slim'
+                args '-v $HOME/.m2:/root/.m2'
+              }
+            }
+
             steps {
                 echo 'Compiling app..'
                 dir('web-quarantine') {
@@ -13,6 +18,12 @@ pipeline {
             }
         }
         stage('test') {
+            agent {
+              docker {
+                image 'maven:3.6.1-jdk-8-slim'
+                args '-v $HOME/.m2:/root/.m2'
+              }
+            }
             steps {
                 echo 'Running unit tests..'
                 dir('web-quarantine') {
@@ -21,16 +32,35 @@ pipeline {
             }
         }
        stage('package') {
+            agent {
+              docker {
+                image 'maven:3.6.1-jdk-8-slim'
+                args '-v $HOME/.m2:/root/.m2'
+              }
+            }
             steps {
-                echo 'Packing app..'
+                echo 'Packing users app..'
                 dir('web-quarantine') {
                     sh 'mvn package -DskipTests'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint:true
                 }
             }
         }
-    }
 
+    stage('docker-package'){
+        agent any
+        steps{
+          echo 'Packaging app with docker'
+          script{
+            docker.withRegistry('https://index.docker.io/v1/', 'dockerlogin') {
+                def usersImage = docker.build("snehah/users:v${env.BUILD_ID}", "./web-quarantine")
+                usersImage.push()
+                usersImage.push("latest")
+           }
+          }
+        }
+      }
+    }
     post {
       always {
         echo 'Building multibranch pipeline for users is completed..'
