@@ -1,5 +1,5 @@
-FROM niggusch/java-mvn-mongo 
-#FROM maven:3.6.1-jdk-8-slim
+#FROM niggusch/java-mvn-mongo 
+FROM maven:3.6.1-jdk-8-slim
 
 WORKDIR /app
 
